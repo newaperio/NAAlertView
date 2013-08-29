@@ -223,6 +223,7 @@ static const UIColor *defaultBorderColor;
         
         imageView = [[UIImageView alloc] initWithImage:self.image];
         imageView.frame = CGRectMake(kJHAlertBoxPadding, altitude, kJHAlertBoxItemWidth, self.image.size.height);
+        imageView.contentMode = UIViewContentModeCenter;
         [self.alertBox addSubview:imageView];
         
         altitude += imageView.frame.size.height;
