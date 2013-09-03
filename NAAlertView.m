@@ -1,12 +1,12 @@
 //
-//  JHFlatAlertView.m
-//  JHFlatAlertView
+//  NAAlertView.m
+//  NAAlertView
 //
 //  Created by Jonathan Hooper on 7/26/13.
-//  Copyright (c) 2013 Jonathan Hooper. All rights reserved.
+//  Copyright (c) 2013 NewAperio LLC. All rights reserved.
 //
 
-#import "JHFlatAlertView.h"
+#import "NAAlertView.h"
 #import <QuartzCore/QuartzCore.h>
 
 // Constants for use laying out elements
@@ -36,7 +36,7 @@ static const float kJHButtonBorderWidth = 1.5;
 static const UIColor *defaultBackgroundColor;
 static const UIColor *defaultBorderColor;
 
-@interface JHFlatAlertView ()
+@interface NAAlertView ()
 
 @property (nonatomic, strong) void (^buttonBlock)();
 @property (nonatomic, strong) void (^cancelButtonBlock)();
@@ -52,12 +52,12 @@ static const UIColor *defaultBorderColor;
 
 @end
 
-@implementation JHFlatAlertView
+@implementation NAAlertView
 
 + (void)initialize
 {
     defaultBackgroundColor = [UIColor whiteColor];
-    defaultBorderColor = [UIColor grayColor];
+    defaultBorderColor = [UIColor darkGrayColor];
 }
 
 - (UIColor *)backgroundColor
@@ -78,12 +78,12 @@ static const UIColor *defaultBorderColor;
 
 + (void)setDefaultBackgroundColor:(UIColor *)color
 {
-    defaultBackgroundColor = color;
+    defaultBackgroundColor = [color copy];
 }
 
 + (void)setDefaultBorderColor:(UIColor *)color
 {
-    defaultBorderColor = color;
+    defaultBorderColor = [color copy];
 }
 
 - (id)init
@@ -138,7 +138,7 @@ static const UIColor *defaultBorderColor;
     return self;
 }
 
-- (void)addButtonWithTitle:(NSString *)title block:(void (^)())block type:(JHFlatAlertViewButtonType)buttonType{
+- (void)addButtonWithTitle:(NSString *)title block:(void (^)())block type:(NAAlertViewButtonType)buttonType{
     UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
     [button setTitle:title forState:UIControlStateNormal];
     [button setTitleColor:self.borderColor forState:UIControlStateNormal];
@@ -149,12 +149,12 @@ static const UIColor *defaultBorderColor;
     button.layer.borderWidth = kJHButtonBorderWidth;
     
     switch (buttonType) {
-        case JHFlatAlertViewButtonTypeRegular:
+        case NAAlertViewButtonTypeRegular:
             self.button = button;
             [self.button addTarget:self action:@selector(buttonPressed:) forControlEvents:UIControlEventTouchUpInside];
             self.buttonBlock = block;
             break;
-        case JHFlatAlertViewButtonTypeCancel:
+        case NAAlertViewButtonTypeCancel:
             self.cancelButton = button;
             [self.cancelButton addTarget:self action:@selector(buttonPressed:) forControlEvents:UIControlEventTouchUpInside];
             self.cancelButtonBlock = block;
@@ -162,11 +162,11 @@ static const UIColor *defaultBorderColor;
     }
 }
 
-- (void)removeButtonWithType:(JHFlatAlertViewButtonType)buttonType
+- (void)removeButtonWithType:(NAAlertViewButtonType)buttonType
 {
-    if (JHFlatAlertViewButtonTypeRegular){
+    if (NAAlertViewButtonTypeRegular){
         self.button = nil;
-    } else if (JHFlatAlertViewButtonTypeCancel){
+    } else if (NAAlertViewButtonTypeCancel){
         self.cancelButton = nil;
     }
 }
@@ -234,7 +234,7 @@ static const UIColor *defaultBorderColor;
     messageTextView.text = self.message;
     messageTextView.textAlignment = NSTextAlignmentCenter;
     messageTextView.textColor = self.borderColor;
-    messageTextView.backgroundColor = self.backgroundColor;
+    messageTextView.backgroundColor = [UIColor clearColor];
     messageTextView.font = [UIFont systemFontOfSize:kJHTextViewFontSize];
     messageTextView.editable = NO;
     messageTextView.userInteractionEnabled = NO;

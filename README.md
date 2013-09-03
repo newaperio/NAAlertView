@@ -1,4 +1,6 @@
-# Flat Alert View
+# NAAlertView
+
+![Screenshots](https://raw.github.com/newaperio/NAAlertView/master/screenshots.png)
 
 ## Introduction
 
@@ -15,13 +17,13 @@ There are several methods for initializing alert views with titles, messages, an
 
 Buttons can be added or removed from the alert view with the following methods:
 
-- `- (void)addButtonWithTitle:(NSString *)title block:(void (^)())block type:(JHFlatAlertViewButtonType)buttonType`
-- `- (void)removeButtonWithType:(JHFlatAlertViewButtonType)buttonType`
+- `- (void)addButtonWithTitle:(NSString *)title block:(void (^)())block type:(NAAlertViewButtonType)buttonType`
+- `- (void)removeButtonWithType:(NAAlertViewButtonType)buttonType`
 
-JHFlatAlertViewButton type describes 2 types.
+NAAlertViewButton type describes 2 types.
 
-- `JHFlatAlertViewButtonTypeRegular`
-- `JHFlatAlertViewButtonTypeCancel`
+- `NAAlertViewButtonTypeRegular`
+- `NAAlertViewButtonTypeCancel`
 
 ## Showing and dismissing and alert view
 
