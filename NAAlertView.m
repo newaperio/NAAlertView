@@ -93,7 +93,7 @@ static const UIColor *defaultBorderColor;
     if (self) {
         UIView *backgroundView = [[UIView alloc] initWithFrame:frame];
         backgroundView.backgroundColor = [UIColor blackColor];
-        backgroundView.alpha = 0.25f;
+        backgroundView.alpha = 0.55f;
         [self addSubview:backgroundView];
     }
     return self;
@@ -177,13 +177,17 @@ static const UIColor *defaultBorderColor;
     if (animated){
         self.hidden = NO;
         self.alpha = 0.0;
-        [[UIApplication sharedApplication].keyWindow.rootViewController.view addSubview:self];
+        UIViewController *vc = [UIApplication sharedApplication].keyWindow.rootViewController;
+        while ([vc presentedViewController]) vc = [vc presentedViewController];
+        [vc.view addSubview:self];
         [UIView beginAnimations:nil context:NULL];
         [UIView setAnimationDuration:0.5];
         [self setAlpha:1.0];
         [UIView commitAnimations];
     } else {
-        [[UIApplication sharedApplication].keyWindow.rootViewController.view addSubview:self];
+        UIViewController *vc = [UIApplication sharedApplication].keyWindow.rootViewController;
+        while ([vc presentedViewController]) vc = [vc presentedViewController];
+        [vc.view addSubview:self];
     }
 }
 
