@@ -197,6 +197,7 @@ static const UIFont *defaultFont;
     titleLabel.textColor = self.borderColor;
     titleLabel.numberOfLines = 0;
     titleLabel.textAlignment = NSTextAlignmentCenter;
+    titleLabel.backgroundColor = [UIColor clearColor];
     float titleLabelHeight = [titleLabel sizeThatFits:CGSizeMake(contentWidth, self.alertBox.frame.size.height)].height;
 
     titleLabel.frame = CGRectMake(alertBoxMargin, altitude, contentWidth, titleLabelHeight);
