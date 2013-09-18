@@ -9,32 +9,9 @@
 #import "NAAlertView.h"
 #import <QuartzCore/QuartzCore.h>
 
-// Constants for use laying out elements
-static const float kJHAlertBoxMinHeight;
-static const float kJHAlertBoxWidth = 245.0;
-static const float kJHAlertBoxPadding = 20.0;
-static const float kJHAlertBoxCornerRadius = 20.0;
-static const float kJHAlertBoxBorderWidth = 2.0;
-static const float kJHAlertBoxItemSpacing = 7.0;
-static const float kJHAlertBoxItemWidth = kJHAlertBoxWidth - kJHAlertBoxPadding * 2.0;
-
-static const float kJHTitleLabelHeight = 30.0;
-static const float kJHTitleLabelFontSize = 28.0;
-
-static const float kJHImageViewMaxHeight = 145.0;
-
-static const float kJHTextViewMaxHeightWithoutImage = 262.0;
-static const float kJHTextViewMaxHeightWithImage = 105.0;
-static const float kJHTextViewFontSize = 15.0;
-
-static const float kJHButtonHeight = 44.0;
-static const float kJHSingleButtonWidth = 140.0;
-static const float kJHButtonSpacing = 10.0;
-static const float kJHButtonCornerRadius = 10.0;
-static const float kJHButtonBorderWidth = 1.5;
-
 static const UIColor *defaultBackgroundColor;
 static const UIColor *defaultBorderColor;
+static const UIFont *defaultFont;
 
 @interface NAAlertView ()
 
@@ -48,6 +25,7 @@ static const UIColor *defaultBorderColor;
 @property (nonatomic, strong) UIButton *cancelButton;
 
 - (void)drawAlertBox;
+- (void)setupButton:(UIButton *)button;
 - (IBAction)buttonPressed:(id)sender;
 
 @end
@@ -58,6 +36,7 @@ static const UIColor *defaultBorderColor;
 {
     defaultBackgroundColor = [UIColor whiteColor];
     defaultBorderColor = [UIColor darkGrayColor];
+    defaultFont = [UIFont systemFontOfSize:17.0];
 }
 
 - (UIColor *)backgroundColor
@@ -76,6 +55,14 @@ static const UIColor *defaultBorderColor;
     return _borderColor;
 }
 
+- (UIFont *)font
+{
+    if (!_font){
+        _font = [defaultFont copy];
+    }
+    return _font;
+}
+
 + (void)setDefaultBackgroundColor:(UIColor *)color
 {
     defaultBackgroundColor = [color copy];
@@ -86,6 +73,11 @@ static const UIColor *defaultBorderColor;
     defaultBorderColor = [color copy];
 }
 
++ (void)setDefaultFont:(UIFont *)font
+{
+    defaultFont = [font copy];
+}
+
 - (id)init
 {
     CGRect frame = [UIApplication sharedApplication].keyWindow.frame;
@@ -93,7 +85,7 @@ static const UIColor *defaultBorderColor;
     if (self) {
         UIView *backgroundView = [[UIView alloc] initWithFrame:frame];
         backgroundView.backgroundColor = [UIColor blackColor];
-        backgroundView.alpha = 0.55f;
+        backgroundView.alpha = 0.50f;
         [self addSubview:backgroundView];
     }
     return self;
@@ -124,31 +116,16 @@ static const UIColor *defaultBorderColor;
     self = [self init];
     self.title = title;
     self.message = message;
-    if (image.size.height > kJHImageViewMaxHeight || image.size.width > kJHAlertBoxItemWidth){
-        float imageResizeScale = MIN(kJHAlertBoxItemWidth / image.size.width, kJHImageViewMaxHeight / image.size.height);
-        CGSize newSize = CGSizeMake(image.size.width * imageResizeScale, image.size.height * imageResizeScale);
-        UIGraphicsBeginImageContext(newSize);
-        [image drawInRect:CGRectMake(0, 0, newSize.width, newSize.height)];
-        UIImage *newImage = UIGraphicsGetImageFromCurrentImageContext();
-        UIGraphicsEndImageContext();
-        self.image = newImage;
-    } else {
-        self.image = image;
-    }
+    self.image = image;
     return self;
 }
 
 - (void)addButtonWithTitle:(NSString *)title block:(void (^)())block type:(NAAlertViewButtonType)buttonType{
     UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
     [button setTitle:title forState:UIControlStateNormal];
-    [button setTitleColor:self.borderColor forState:UIControlStateNormal];
-    [button setTitleColor:self.backgroundColor forState:UIControlStateSelected];
-    button.backgroundColor = self.backgroundColor;
-    button.layer.borderColor = self.borderColor.CGColor;
-    button.layer.cornerRadius = kJHButtonCornerRadius;
-    button.layer.borderWidth = kJHButtonBorderWidth;
     
     switch (buttonType) {
+        default:
         case NAAlertViewButtonTypeRegular:
             self.button = button;
             [self.button addTarget:self action:@selector(buttonPressed:) forControlEvents:UIControlEventTouchUpInside];
@@ -206,88 +183,102 @@ static const UIColor *defaultBorderColor;
 
 - (void)drawAlertBox
 {    
+    UIWindow *window = [UIApplication sharedApplication].keyWindow;
     self.alertBox = [[UIView alloc] init];
+    float alertBoxMargin = window.frame.size.width * 0.085;
+    self.alertBox.frame = CGRectMake(0, 0, window.frame.size.width - 2 * alertBoxMargin, window.frame.size.height - 2 * alertBoxMargin);
     
-    //Layout title
-    float altitude = kJHAlertBoxPadding;
-    UILabel *titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(kJHAlertBoxPadding, altitude, kJHAlertBoxItemWidth, kJHTitleLabelHeight)];
+    float contentWidth = self.alertBox.frame.size.width - 2.0 * alertBoxMargin;
+    float altitude = alertBoxMargin;
+    
+    UILabel *titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, contentWidth, 10.0)];
     titleLabel.text = self.title;
-    titleLabel.textAlignment = NSTextAlignmentCenter;
+    titleLabel.font = [UIFont fontWithName:self.font.fontName size:28.0];
     titleLabel.textColor = self.borderColor;
-    titleLabel.font = [UIFont boldSystemFontOfSize:kJHTitleLabelFontSize];
-    titleLabel.backgroundColor = [UIColor clearColor];
+    titleLabel.numberOfLines = 0;
+    titleLabel.textAlignment = NSTextAlignmentCenter;
+    float titleLabelHeight = [titleLabel sizeThatFits:CGSizeMake(contentWidth, self.alertBox.frame.size.height)].height;
+
+    titleLabel.frame = CGRectMake(alertBoxMargin, altitude, contentWidth, titleLabelHeight);
     [self.alertBox addSubview:titleLabel];
+    altitude = altitude + titleLabelHeight;
     
-    altitude += titleLabel.frame.size.height;
-    
-    //Layout image
-    UIImageView *imageView;
-    if (self.image){
-        altitude += kJHAlertBoxItemSpacing;
-        
-        imageView = [[UIImageView alloc] initWithImage:self.image];
-        imageView.frame = CGRectMake(kJHAlertBoxPadding, altitude, kJHAlertBoxItemWidth, self.image.size.height);
-        imageView.contentMode = UIViewContentModeCenter;
-        [self.alertBox addSubview:imageView];
-        
-        altitude += imageView.frame.size.height;
-    }
-    
-    // Layout message
-    UITextView *messageTextView = [[UITextView alloc] initWithFrame:CGRectMake(kJHAlertBoxPadding, altitude, kJHAlertBoxItemWidth, kJHTextViewMaxHeightWithoutImage)];
-    messageTextView.text = self.message;
-    messageTextView.textAlignment = NSTextAlignmentCenter;
-    messageTextView.textColor = self.borderColor;
-    messageTextView.backgroundColor = [UIColor clearColor];
-    messageTextView.font = [UIFont systemFontOfSize:kJHTextViewFontSize];
-    messageTextView.editable = NO;
-    messageTextView.userInteractionEnabled = NO;
-    [self.alertBox addSubview:messageTextView];
-    if (self.image && messageTextView.contentSize.height >= kJHTextViewMaxHeightWithImage - .0001)
-    {
-        messageTextView.frame = CGRectMake(kJHAlertBoxPadding, altitude - 5.0, kJHAlertBoxItemWidth, kJHTextViewMaxHeightWithImage);
-        messageTextView.userInteractionEnabled = YES;
-        messageTextView.scrollEnabled = YES;
-        altitude += kJHAlertBoxItemSpacing + kJHTextViewMaxHeightWithImage;
-    } else if (!self.image && messageTextView.contentSize.height >= kJHTextViewMaxHeightWithoutImage){
-        messageTextView.frame = CGRectMake(kJHAlertBoxPadding, altitude - 5.0, kJHAlertBoxItemWidth, kJHTextViewMaxHeightWithoutImage);
-        messageTextView.userInteractionEnabled = YES;
-        messageTextView.scrollEnabled = YES;
-        altitude += kJHAlertBoxItemSpacing + kJHTextViewMaxHeightWithoutImage;
-    } else {
-        messageTextView.frame = CGRectMake(kJHAlertBoxPadding, altitude -5.0, kJHAlertBoxItemWidth, messageTextView.contentSize.height);
-        messageTextView.scrollEnabled = NO;
-        altitude += messageTextView.contentSize.height;
-    }
-    
-    //Layout buttons
-    if (self.button && self.cancelButton){
-        self.button.frame = CGRectMake(kJHAlertBoxPadding, altitude, kJHAlertBoxItemWidth / 2.0 - kJHButtonSpacing / 2.0, kJHButtonHeight);
-        self.cancelButton.frame = CGRectMake(kJHAlertBoxPadding + kJHAlertBoxItemWidth / 2.0 + kJHButtonSpacing, altitude, kJHAlertBoxItemWidth / 2.0 - kJHButtonSpacing / 2.0, kJHButtonHeight);
-        [self.alertBox addSubview:self.button];
-        [self.alertBox addSubview:self.cancelButton];
-    } else if (self.button){
-        self.button.frame = CGRectMake((kJHAlertBoxWidth - kJHSingleButtonWidth) / 2.0, altitude, kJHSingleButtonWidth, kJHButtonHeight);
-        [self.alertBox addSubview:self.button];
-    } else if (self.cancelButton){
-        self.cancelButton.frame = CGRectMake((kJHAlertBoxWidth - kJHSingleButtonWidth) / 2.0, altitude, kJHSingleButtonWidth, kJHButtonHeight);
-        [self.alertBox addSubview:self.cancelButton];
-    }
-    altitude += kJHButtonHeight + kJHAlertBoxPadding;
-    
-    //Layout alert box
-    self.alertBox.frame = CGRectMake(self.frame.size.width / 2.0 - kJHAlertBoxWidth / 2.0, (self.frame.size.height / 2.0 - altitude / 2.0) * 0.85, kJHAlertBoxWidth, altitude);
     self.alertBox.backgroundColor = self.backgroundColor;
-    self.alertBox.layer.cornerRadius = kJHAlertBoxCornerRadius;
+    self.alertBox.layer.cornerRadius = alertBoxMargin * 1.5;
     self.alertBox.layer.borderColor = self.borderColor.CGColor;
-    self.alertBox.layer.borderWidth = kJHAlertBoxBorderWidth;
+    self.alertBox.layer.borderWidth = 2.0;
     
     self.alertBox.layer.shadowColor = [UIColor blackColor].CGColor;
     self.alertBox.layer.shadowOffset = CGSizeMake(4.0, 4.0);
     self.alertBox.layer.shadowOpacity = 0.4;
     
-        
+    float buttonHeight = 44.0;
+    float contentHeight = self.alertBox.frame.size.height - (2 * alertBoxMargin + titleLabelHeight + buttonHeight);
+    UIImageView *imageView;
+    if (self.image){
+        contentHeight = contentHeight / 2.0;
+        imageView = [[UIImageView alloc] initWithFrame:CGRectMake(alertBoxMargin, altitude + 5.0, contentWidth, MIN(contentHeight, self.image.size.height))];
+        altitude = altitude + MIN(contentHeight, self.image.size.height) + 5.0;
+        imageView.contentMode = UIViewContentModeScaleAspectFit;
+        imageView.image = self.image;
+        [self.alertBox addSubview:imageView];
+    }
+    UITextView *messageView = [[UITextView alloc] initWithFrame:CGRectMake(alertBoxMargin, altitude, contentWidth, contentHeight)];
+    messageView.text = self.message;
+    messageView.font = [UIFont fontWithName:self.font.fontName size:17.0];
+    messageView.textColor = self.borderColor;
+    messageView.editable = NO;
+    messageView.scrollEnabled = YES;
+    messageView.backgroundColor = [UIColor clearColor];
+    messageView.textAlignment = NSTextAlignmentCenter;
+    [self.alertBox addSubview:messageView];
+    if (messageView.contentSize.height <= contentHeight){
+        messageView.frame = CGRectMake(alertBoxMargin, altitude, contentWidth, messageView.contentSize.height);
+        messageView.userInteractionEnabled = NO;
+    }
+    altitude = altitude + messageView.frame.size.height + 10.0;
+    
+    // Add an OK button if there is no button present
+    if (!self.button && !self.cancelButton) [self addButtonWithTitle:@"OK" block:nil type:NAAlertViewButtonTypeRegular];
+    
+    
+    
+    if (self.button && self.cancelButton){
+        [self setupButton:self.button]; [self setupButton:self.cancelButton];
+        [self.alertBox addSubview:self.button]; [self.alertBox addSubview:self.cancelButton];
+        self.button.frame = CGRectMake(alertBoxMargin, altitude, contentWidth * 0.5 - 2.5, buttonHeight);
+        self.cancelButton.frame = CGRectMake(alertBoxMargin + contentWidth * 0.5 + 5.0, altitude, contentWidth * 0.5 - 2.5, buttonHeight);
+    } else if (self.button) {
+        [self setupButton:self.button];
+        self.button.frame = CGRectMake(alertBoxMargin + .125 * contentWidth, altitude, contentWidth * .75, buttonHeight);
+        [self.alertBox addSubview:self.button];
+    } else if (self.cancelButton) {
+        [self setupButton:self.cancelButton];
+        self.cancelButton.frame = CGRectMake(alertBoxMargin + .125 * contentWidth, altitude, contentWidth * .75, buttonHeight);
+        [self.alertBox addSubview:self.cancelButton];
+    }
+    
+    CGRect alertBoxFrame = self.alertBox.frame;
+    alertBoxFrame.size.height = alertBoxMargin + titleLabel.frame.size.height + messageView.frame.size.height + 5.0 + buttonHeight + alertBoxMargin;
+    if (self.image){
+        alertBoxFrame.size.height = alertBoxFrame.size.height + imageView.frame.size.height + 5.0;
+    }
+    self.alertBox.frame = alertBoxFrame;
+    
+    self.alertBox.center = window.center;
+    
     [self addSubview:self.alertBox];
+}
+
+- (void)setupButton:(UIButton *)button;
+{
+    [button setTitleColor:self.borderColor forState:UIControlStateNormal];
+    [button setTitleColor:self.backgroundColor forState:UIControlStateSelected];
+    button.titleLabel.font = [UIFont fontWithName:self.font.fontName size:17.0];
+    button.backgroundColor = self.backgroundColor;
+    button.layer.borderColor = self.borderColor.CGColor;
+    button.layer.cornerRadius = 10.0;
+    button.layer.borderWidth = 1.5;
 }
 
 - (IBAction)buttonPressed:(id)sender

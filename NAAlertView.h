@@ -25,6 +25,10 @@ typedef NS_ENUM(NSInteger, NAAlertViewButtonType){
  */
 @property (nonatomic, strong) UIColor *borderColor;
 
+/**
+ The font used for the text in the alert view.
+ */
+@property (nonatomic, strong) UIFont *font;
 
 
 /**
@@ -47,14 +51,23 @@ typedef NS_ENUM(NSInteger, NAAlertViewButtonType){
  
  @param color The new default background color
  */
-+(void)setDefaultBackgroundColor:(UIColor *)color;
++ (void)setDefaultBackgroundColor:(UIColor *)color;
 
 /**
  Changes the default border color for all alert view generated
  
  @param color The new default border color
  */
-+(void)setDefaultBorderColor:(UIColor *)color;
++ (void)setDefaultBorderColor:(UIColor *)color;
+
+/**
+ Sets the default font for all alert views generated
+ 
+ @param font The new default font
+ */
++ (void)setDefaultFont:(UIFont *)font;
+
+
 
 /**
  Returns an empty NAAlertView object with just a greyed out background.
