@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name = 'NAAlertView'
-  s.version = "0.0.4"
+  s.version = "0.0.5"
   s.platform = :ios
   s.summary = 'This is a styled alert view for use in iOS applications.'
   s.author = {
@@ -10,7 +10,7 @@ Pod::Spec.new do |s|
   s.homepage = 'https://github.com/newaperio/NAAlertView'
   s.source = {
     git: 'https://github.com/newaperio/NAAlertView.git',
-    tag: '0.0.4'
+    tag: '0.0.5'
   }
   s.source_files = '*.{h,m}'
 end
