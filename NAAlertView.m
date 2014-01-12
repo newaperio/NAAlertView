@@ -187,6 +187,14 @@ static const UIFont *defaultFont;
     self.alertBox = [[UIView alloc] init];
     float alertBoxMargin = window.frame.size.width * 0.085;
     self.alertBox.frame = CGRectMake(0, 0, window.frame.size.width - 2 * alertBoxMargin, window.frame.size.height - 2 * alertBoxMargin);
+    self.alertBox.backgroundColor = self.backgroundColor;
+    self.alertBox.layer.cornerRadius = alertBoxMargin * 1.5;
+    self.alertBox.layer.borderColor = self.borderColor.CGColor;
+    self.alertBox.layer.borderWidth = 2.0;
+    
+    self.alertBox.layer.shadowColor = [UIColor blackColor].CGColor;
+    self.alertBox.layer.shadowOffset = CGSizeMake(4.0, 4.0);
+    self.alertBox.layer.shadowOpacity = 0.4;
     
     float contentWidth = self.alertBox.frame.size.width - 2.0 * alertBoxMargin;
     float altitude = alertBoxMargin;
@@ -204,14 +212,6 @@ static const UIFont *defaultFont;
     [self.alertBox addSubview:titleLabel];
     altitude = altitude + titleLabelHeight;
     
-    self.alertBox.backgroundColor = self.backgroundColor;
-    self.alertBox.layer.cornerRadius = alertBoxMargin * 1.5;
-    self.alertBox.layer.borderColor = self.borderColor.CGColor;
-    self.alertBox.layer.borderWidth = 2.0;
-    
-    self.alertBox.layer.shadowColor = [UIColor blackColor].CGColor;
-    self.alertBox.layer.shadowOffset = CGSizeMake(4.0, 4.0);
-    self.alertBox.layer.shadowOpacity = 0.4;
     
     float buttonHeight = 44.0;
     float contentHeight = self.alertBox.frame.size.height - (2 * alertBoxMargin + titleLabelHeight + buttonHeight);
@@ -224,6 +224,7 @@ static const UIFont *defaultFont;
         imageView.image = self.image;
         [self.alertBox addSubview:imageView];
     }
+    
     UITextView *messageView = [[UITextView alloc] initWithFrame:CGRectMake(alertBoxMargin, altitude, contentWidth, contentHeight)];
     messageView.text = self.message;
     messageView.font = [UIFont fontWithName:self.font.fontName size:17.0];
@@ -232,17 +233,18 @@ static const UIFont *defaultFont;
     messageView.scrollEnabled = YES;
     messageView.backgroundColor = [UIColor clearColor];
     messageView.textAlignment = NSTextAlignmentCenter;
-    [self.alertBox addSubview:messageView];
-    if (messageView.contentSize.height <= contentHeight){
-        messageView.frame = CGRectMake(alertBoxMargin, altitude, contentWidth, messageView.contentSize.height);
+    
+    float textViewHeight = [messageView sizeThatFits:messageView.frame.size].height;
+    if (textViewHeight <= contentHeight){
+        messageView.frame = CGRectMake(alertBoxMargin, altitude, contentWidth, textViewHeight);
         messageView.userInteractionEnabled = NO;
     }
+    [self.alertBox addSubview:messageView];
+    
     altitude = altitude + messageView.frame.size.height + 10.0;
     
     // Add an OK button if there is no button present
     if (!self.button && !self.cancelButton) [self addButtonWithTitle:@"OK" block:nil type:NAAlertViewButtonTypeRegular];
-    
-    
     
     if (self.button && self.cancelButton){
         [self setupButton:self.button]; [self setupButton:self.cancelButton];
