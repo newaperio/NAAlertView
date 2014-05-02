@@ -230,7 +230,7 @@ static const UIFont *defaultFont;
     messageView.font = [UIFont fontWithName:self.font.fontName size:17.0];
     messageView.textColor = self.borderColor;
     messageView.editable = NO;
-    messageView.scrollEnabled = YES;
+    messageView.scrollEnabled = NO;
     messageView.backgroundColor = [UIColor clearColor];
     messageView.textAlignment = NSTextAlignmentCenter;
     
@@ -238,7 +238,10 @@ static const UIFont *defaultFont;
     if (textViewHeight <= contentHeight){
         messageView.frame = CGRectMake(alertBoxMargin, altitude, contentWidth, textViewHeight);
         messageView.userInteractionEnabled = NO;
+    } else {
+        messageView.scrollEnabled = YES;
     }
+    
     [self.alertBox addSubview:messageView];
     
     altitude = altitude + messageView.frame.size.height + 10.0;
