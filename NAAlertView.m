@@ -7,6 +7,7 @@
 //
 
 #import "NAAlertView.h"
+#import <POP/POP.h>
 #import <QuartzCore/QuartzCore.h>
 
 static const UIColor *defaultBackgroundColor;
@@ -152,15 +153,29 @@ static const UIFont *defaultFont;
 {
     [self drawAlertBox];
     if (animated){
-        self.hidden = NO;
+        CGFloat toValue = self.alertBox.center.y;
+        
+        CGRect hiddenFrame = self.alertBox.frame;
+        hiddenFrame.origin.y = -1.25 * hiddenFrame.size.height;
+        self.alertBox.frame = hiddenFrame;
         self.alpha = 0.0;
+        
         UIViewController *vc = [UIApplication sharedApplication].keyWindow.rootViewController;
         while ([vc presentedViewController]) vc = [vc presentedViewController];
         [vc.view addSubview:self];
-        [UIView beginAnimations:nil context:NULL];
-        [UIView setAnimationDuration:0.5];
-        [self setAlpha:1.0];
-        [UIView commitAnimations];
+        
+        POPBasicAnimation *fade = [POPBasicAnimation animationWithPropertyNamed:kPOPViewAlpha];
+        fade.duration = 0.3;
+        fade.fromValue = @(0.0);
+        fade.toValue = @(1.0);
+        
+        POPSpringAnimation *spring = [POPSpringAnimation animationWithPropertyNamed:kPOPLayerPositionY];
+        spring.toValue = @(toValue);
+        spring.springSpeed = 15.0;
+        spring.springBounciness = 6.0;
+        
+        [self.alertBox.layer pop_addAnimation:spring forKey:@"spring"];
+        [self pop_addAnimation:fade forKey:@"fade"];
     } else {
         UIViewController *vc = [UIApplication sharedApplication].keyWindow.rootViewController;
         while ([vc presentedViewController]) vc = [vc presentedViewController];
@@ -171,11 +186,21 @@ static const UIFont *defaultFont;
 - (void)dismissAnimated:(BOOL)animated
 {
     if (animated){
-        [UIView beginAnimations:nil context:NULL];
-        [UIView setAnimationDuration:0.5];
-        [UIView setAnimationDidStopSelector:@selector(removeFromSuperview)];
-        self.alpha = 0.0;
-        [UIView commitAnimations];
+        POPBasicAnimation *fade = [POPBasicAnimation animationWithPropertyNamed:kPOPViewAlpha];
+        fade.duration = 0.5;
+        fade.fromValue = @(1.0);
+        fade.toValue = @(0.0);
+        
+        POPSpringAnimation *spring = [POPSpringAnimation animationWithPropertyNamed:kPOPLayerPositionY];
+        spring.toValue = @(self.alertBox.frame.size.height * -1.25);
+        spring.springSpeed = 15.0;
+        spring.springBounciness = 6.0;
+        spring.completionBlock = ^(POPAnimation *a, BOOL finished) {
+            if (finished) [self removeFromSuperview];
+        };
+        
+        [self.alertBox.layer pop_addAnimation:spring forKey:@"spring"];
+        [self pop_addAnimation:fade forKey:@"fade"];
     } else {
         [self removeFromSuperview];
     }
@@ -188,13 +213,9 @@ static const UIFont *defaultFont;
     float alertBoxMargin = window.frame.size.width * 0.085;
     self.alertBox.frame = CGRectMake(0, 0, window.frame.size.width - 2 * alertBoxMargin, window.frame.size.height - 2 * alertBoxMargin);
     self.alertBox.backgroundColor = self.backgroundColor;
-    self.alertBox.layer.cornerRadius = alertBoxMargin * 1.5;
+    self.alertBox.layer.cornerRadius = alertBoxMargin * 1.0;
     self.alertBox.layer.borderColor = self.borderColor.CGColor;
-    self.alertBox.layer.borderWidth = 2.0;
-    
-    self.alertBox.layer.shadowColor = [UIColor blackColor].CGColor;
-    self.alertBox.layer.shadowOffset = CGSizeMake(4.0, 4.0);
-    self.alertBox.layer.shadowOpacity = 0.4;
+    self.alertBox.layer.borderWidth = 0.75;
     
     float contentWidth = self.alertBox.frame.size.width - 2.0 * alertBoxMargin;
     float altitude = alertBoxMargin;
@@ -252,8 +273,8 @@ static const UIFont *defaultFont;
     if (self.button && self.cancelButton){
         [self setupButton:self.button]; [self setupButton:self.cancelButton];
         [self.alertBox addSubview:self.button]; [self.alertBox addSubview:self.cancelButton];
-        self.button.frame = CGRectMake(alertBoxMargin, altitude, contentWidth * 0.5 - 2.5, buttonHeight);
-        self.cancelButton.frame = CGRectMake(alertBoxMargin + contentWidth * 0.5 + 5.0, altitude, contentWidth * 0.5 - 2.5, buttonHeight);
+        self.cancelButton.frame = CGRectMake(alertBoxMargin, altitude, contentWidth * 0.5 - 2.5, buttonHeight);
+        self.button.frame = CGRectMake(alertBoxMargin + contentWidth * 0.5 + 5.0, altitude, contentWidth * 0.5 - 2.5, buttonHeight);
     } else if (self.button) {
         [self setupButton:self.button];
         self.button.frame = CGRectMake(alertBoxMargin + .125 * contentWidth, altitude, contentWidth * .75, buttonHeight);
@@ -280,11 +301,16 @@ static const UIFont *defaultFont;
 {
     [button setTitleColor:self.borderColor forState:UIControlStateNormal];
     [button setTitleColor:self.backgroundColor forState:UIControlStateSelected];
-    button.titleLabel.font = [UIFont fontWithName:self.font.fontName size:17.0];
     button.backgroundColor = self.backgroundColor;
     button.layer.borderColor = self.borderColor.CGColor;
     button.layer.cornerRadius = 10.0;
-    button.layer.borderWidth = 1.5;
+    if (self.button == button) {
+        button.layer.borderWidth = 1.5;
+        button.titleLabel.font = [UIFont fontWithName:self.font.fontName size:18.0];
+    } else {
+        button.layer.borderWidth = 1.0;
+        button.titleLabel.font = [UIFont fontWithName:self.font.fontName size:17.0];
+    }
 }
 
 - (IBAction)buttonPressed:(id)sender

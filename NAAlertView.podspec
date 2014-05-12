@@ -13,4 +13,5 @@ Pod::Spec.new do |s|
     tag: '0.0.6'
   }
   s.source_files = '*.{h,m}'
+  s.dependency 'pop', '~> 1.0'
 end
